@@ -3,51 +3,87 @@ using DotFuzzy;
 
 public class FuzzyEngineController : MonoBehaviour
 {
-    public FuzzyEngine fuzzyEngine; // Expose this for other scripts like FuzzyCarController to reference
+    public FuzzyEngine fuzzyEngine;
 
-    void Start()
+    void Awake()
     {
         fuzzyEngine = new FuzzyEngine();
-        if (fuzzyEngine == null)
-        {
-            fuzzyEngine = new FuzzyEngine();
-            // Make sure fuzzyEngine is instantiated
-        }
 
-        LinguisticVariable angleToParkingSpot = new LinguisticVariable("AngleToParkingSpot");
-        angleToParkingSpot.MembershipFunctionCollection.Add(new MembershipFunction("Straight", -5, 0, 0, 5));
-        angleToParkingSpot.MembershipFunctionCollection.Add(new MembershipFunction("SlightLeft", -20, -15, -10, -5));
-        angleToParkingSpot.MembershipFunctionCollection.Add(new MembershipFunction("SharpLeft", -180, -120, -60, -40));
-        angleToParkingSpot.MembershipFunctionCollection.Add(new MembershipFunction("SlightRight", 5, 10, 15, 20));
-        angleToParkingSpot.MembershipFunctionCollection.Add(new MembershipFunction("SharpRight", 40, 60, 120, 180));
+        // --------------------------------------------------
+        // Configure Input Variable: AngleToParkingSpot
+        // --------------------------------------------------
+        LinguisticVariable angleVar = new LinguisticVariable("AngleToParkingSpot");
+        // Membership functions for full 180° left to right
+        angleVar.MembershipFunctionCollection.Add(new MembershipFunction("VeryNegative", -180, -180, -135, -90));
+        angleVar.MembershipFunctionCollection.Add(new MembershipFunction("NegativeLarge", -135, -90, -90, -45));
+        angleVar.MembershipFunctionCollection.Add(new MembershipFunction("NegativeSmall", -60, -30, -15, 0));
+        angleVar.MembershipFunctionCollection.Add(new MembershipFunction("Zero", -5, 0, 0, 5));
+        angleVar.MembershipFunctionCollection.Add(new MembershipFunction("PositiveSmall", 0, 15, 30, 60));
+        angleVar.MembershipFunctionCollection.Add(new MembershipFunction("PositiveLarge", 45, 90, 90, 135));
+        angleVar.MembershipFunctionCollection.Add(new MembershipFunction("VeryPositive", 90, 135, 180, 180));
+        fuzzyEngine.InputVariableCollection.Add(angleVar);
 
-        LinguisticVariable steeringAngle = new LinguisticVariable("SteeringAngle");
-        steeringAngle.MembershipFunctionCollection.Add(new MembershipFunction("SharpLeft", -100, -60, -30, -20));
-        steeringAngle.MembershipFunctionCollection.Add(new MembershipFunction("Left", -15, -10, -5, 0));
-        steeringAngle.MembershipFunctionCollection.Add(new MembershipFunction("Straight", -5, 0, 0, 5));
-        steeringAngle.MembershipFunctionCollection.Add(new MembershipFunction("Right", 0, 5, 10, 15));
-        steeringAngle.MembershipFunctionCollection.Add(new MembershipFunction("SharpRight", 20, 30, 60, 100));
-
-        // Add Linguistic Variables to the Fuzzy Engine
-        fuzzyEngine.LinguisticVariableCollection.Add(angleToParkingSpot);
-        fuzzyEngine.LinguisticVariableCollection.Add(steeringAngle);
-        fuzzyEngine.consequent = "steeringAngle";
-
-
-        // Define Fuzzy Rules for Reversing into Parking Spot
-        FuzzyRule rule1 = new FuzzyRule("IF (AngleToParkingSpot IS SharpLeft) THEN SteeringAngle IS SharpLeft");
-        FuzzyRule rule2 = new FuzzyRule("IF (AngleToParkingSpot IS SlightLeft) THEN SteeringAngle IS Left");
-        FuzzyRule rule3 = new FuzzyRule("IF (AngleToParkingSpot IS Straight) THEN SteeringAngle IS Straight");
-        FuzzyRule rule4 = new FuzzyRule("IF (AngleToParkingSpot IS SlightRight) THEN SteeringAngle IS Right");
-        FuzzyRule rule5 = new FuzzyRule("IF (AngleToParkingSpot IS SharpRight) THEN SteeringAngle IS SharpRight");
+        // -----------------------------
+        // Input: DistanceToObstacle
+        // -----------------------------
+        LinguisticVariable distanceVar = new LinguisticVariable("DistanceToObstacle");
+        distanceVar.MembershipFunctionCollection.Add(new MembershipFunction("Near", 0, 0, 2, 5));
+        distanceVar.MembershipFunctionCollection.Add(new MembershipFunction("Medium", 3, 6, 8, 11));
+        distanceVar.MembershipFunctionCollection.Add(new MembershipFunction("Far", 10, 15, 20, 25));
+        fuzzyEngine.InputVariableCollection.Add(distanceVar);
 
 
-        // Add Rules to the Fuzzy Engine
-        fuzzyEngine.FuzzyRuleCollection.Add(rule1);
-        fuzzyEngine.FuzzyRuleCollection.Add(rule2);
-        fuzzyEngine.FuzzyRuleCollection.Add(rule3);
-        fuzzyEngine.FuzzyRuleCollection.Add(rule4);
-        fuzzyEngine.FuzzyRuleCollection.Add(rule5);
+                // -----------------------------
+        // Output: Speed (Reverse)
+        // -----------------------------
+        LinguisticVariable speedVar = new LinguisticVariable("Speed");
+        speedVar.MembershipFunctionCollection.Add(new MembershipFunction("ForwardSlow", 1, 2, 3, 4));
+        speedVar.MembershipFunctionCollection.Add(new MembershipFunction("ForwardModerate", 3, 5, 6, 8));
+        speedVar.MembershipFunctionCollection.Add(new MembershipFunction("ForwardFast", 7, 9, 10, 12));
+
+        speedVar.MembershipFunctionCollection.Add(new MembershipFunction("Stop", 0, 0, 0, 0));
+
+        speedVar.MembershipFunctionCollection.Add(new MembershipFunction("ReverseSlow", -5, -5, -3, -1));
+        speedVar.MembershipFunctionCollection.Add(new MembershipFunction("ReverseModerate", -8, -6, -5, -3));
+        speedVar.MembershipFunctionCollection.Add(new MembershipFunction("ReverseFast", -12, -10, -8, -6));
+        fuzzyEngine.OutputVariableCollection.Add(speedVar);
+
+
+        // -----------------------------
+        // Output: Steering
+        // -----------------------------
+        LinguisticVariable steeringVar = new LinguisticVariable("Steering");
+        steeringVar.MembershipFunctionCollection.Add(new MembershipFunction("SharpLeft", -60, -45, -30, -20));
+        steeringVar.MembershipFunctionCollection.Add(new MembershipFunction("Left", -30, -20, -10, -5));
+        steeringVar.MembershipFunctionCollection.Add(new MembershipFunction("Straight", -2, 0, 0, 2));
+        steeringVar.MembershipFunctionCollection.Add(new MembershipFunction("Right", 5, 10, 20, 30));
+        steeringVar.MembershipFunctionCollection.Add(new MembershipFunction("SharpRight", 20, 30, 45, 60));
+        fuzzyEngine.OutputVariableCollection.Add(steeringVar);
+
+
+        // -----------------------------
+        // Fuzzy Rules for Reverse Motion
+        // -----------------------------
+        // Steering and speed rules based on expanded angle range
+        // FORWARD motion rules (assume car is better aligned and can go forward)
+        fuzzyEngine.FuzzyRuleCollection.Add(new FuzzyRule("IF AngleToParkingSpot IS Zero AND DistanceToObstacle IS Far THEN Speed IS ForwardFast AND Steering IS Straight"));
+        fuzzyEngine.FuzzyRuleCollection.Add(new FuzzyRule("IF AngleToParkingSpot IS PositiveSmall AND DistanceToObstacle IS Far THEN Speed IS ForwardModerate AND Steering IS Right"));
+        fuzzyEngine.FuzzyRuleCollection.Add(new FuzzyRule("IF AngleToParkingSpot IS NegativeSmall AND DistanceToObstacle IS Far THEN Speed IS ForwardModerate AND Steering IS Left"));
+        fuzzyEngine.FuzzyRuleCollection.Add(new FuzzyRule("IF AngleToParkingSpot IS PositiveLarge AND DistanceToObstacle IS Far THEN Speed IS ForwardSlow AND Steering IS Right"));
+        fuzzyEngine.FuzzyRuleCollection.Add(new FuzzyRule("IF AngleToParkingSpot IS NegativeLarge AND DistanceToObstacle IS Far THEN Speed IS ForwardSlow AND Steering IS Left"));
+
+        fuzzyEngine.FuzzyRuleCollection.Add(new FuzzyRule("IF AngleToParkingSpot IS VeryNegative THEN Speed IS ReverseSlow AND Steering IS SharpLeft"));
+        fuzzyEngine.FuzzyRuleCollection.Add(new FuzzyRule("IF AngleToParkingSpot IS NegativeLarge THEN Speed IS ReverseModerate AND Steering IS Left"));
+        fuzzyEngine.FuzzyRuleCollection.Add(new FuzzyRule("IF AngleToParkingSpot IS NegativeSmall THEN Speed IS ReverseFast AND Steering IS Left"));
+        fuzzyEngine.FuzzyRuleCollection.Add(new FuzzyRule("IF AngleToParkingSpot IS Zero THEN Speed IS ReverseFast AND Steering IS Straight"));
+        fuzzyEngine.FuzzyRuleCollection.Add(new FuzzyRule("IF AngleToParkingSpot IS PositiveSmall THEN Speed IS ReverseFast AND Steering IS Right"));
+        fuzzyEngine.FuzzyRuleCollection.Add(new FuzzyRule("IF AngleToParkingSpot IS PositiveLarge THEN Speed IS ReverseModerate AND Steering IS Right"));
+        fuzzyEngine.FuzzyRuleCollection.Add(new FuzzyRule("IF AngleToParkingSpot IS VeryPositive THEN Speed IS ReverseSlow AND Steering IS SharpRight"));
+
+        fuzzyEngine.FuzzyRuleCollection.Add(new FuzzyRule("IF AngleToParkingSpot IS Zero AND DistanceToObstacle IS Medium THEN Speed IS ForwardModerate AND Steering IS Straight"));
+        fuzzyEngine.FuzzyRuleCollection.Add(new FuzzyRule("IF AngleToParkingSpot IS PositiveSmall AND DistanceToObstacle IS Medium THEN Speed IS ForwardSlow AND Steering IS Right"));
+        fuzzyEngine.FuzzyRuleCollection.Add(new FuzzyRule("IF AngleToParkingSpot IS NegativeSmall AND DistanceToObstacle IS Medium THEN Speed IS ForwardSlow AND Steering IS Left"));
+
 
     }
 }

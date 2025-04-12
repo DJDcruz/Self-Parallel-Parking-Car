@@ -9,8 +9,11 @@ public class FuzzyCarController : MonoBehaviour
     public WheelCollider rearLeftWheel;
     public WheelCollider rearRightWheel;
 
-    public float motorTorque = 1500f;
+    public float motorTorqueMultiplier = 20f;
     public float maxSteeringAngle = 30f;
+
+    // Reference to the ParkingSpot component in the scene
+    public ParkingSpot parkingSpot;
 
     private void Start()
     {
@@ -19,67 +22,98 @@ public class FuzzyCarController : MonoBehaviour
         {
             Debug.LogError("FuzzyEngineController is not assigned!");
         }
-
-        if (fuzzyEngineController.fuzzyEngine == null)
+        else if (fuzzyEngineController.fuzzyEngine == null)
         {
-            Debug.LogError("FuzzyEngine is not assigned!");
+            Debug.LogError("FuzzyEngine is not assigned in FuzzyEngineController!");
+        }
+
+        if (parkingSpot == null)
+        {
+            Debug.LogError("ParkingSpot reference is not assigned in FuzzyCarController!");
         }
     }
 
     void FixedUpdate()
     {
-
         if (fuzzyEngineController == null || fuzzyEngineController.fuzzyEngine == null)
         {
             Debug.LogError("FuzzyEngineController or FuzzyEngine is null!");
             return;
         }
 
+        if (parkingSpot == null)
+        {
+            Debug.LogError("ParkingSpot reference is missing!");
+            return;
+        }
+
+        // Get the measured angle to the parking spot.
         float angleToParkingSpot = GetAngleToParkingSpot();
+        // Get the measured distance from the car to the parking spot center.
+        float distanceToParkingSpot = MeasureDistanceToParkingSpot();
 
-        // Set the input values for fuzzy logic
+        // Set the fuzzy logic inputs.
         fuzzyEngineController.fuzzyEngine.SetInput("AngleToParkingSpot", angleToParkingSpot);
+        fuzzyEngineController.fuzzyEngine.SetInput("DistanceToObstacle", distanceToParkingSpot);
 
-        // Evaluate the fuzzy logic system
+        // Evaluate the fuzzy logic system.
         fuzzyEngineController.fuzzyEngine.Evaluate();
 
-        // Get the crisp output values for car speed and steering angle
-        float steeringAngle = (float)fuzzyEngineController.fuzzyEngine.GetOutput("SteeringAngle");
-        
+        // Get crisp outputs for steering and speed.
+        float fuzzySteering = (float)fuzzyEngineController.fuzzyEngine.GetOutput("Steering");
+        float fuzzySpeed = (float)fuzzyEngineController.fuzzyEngine.GetOutput("Speed");
+        Debug.Log(fuzzyEngineController.fuzzyEngine.GetOutput("Speed"));
 
-        Debug.Log($"Angle: {angleToParkingSpot}, Torque: {rearLeftWheel.motorTorque}, Steer Angle: {frontLeftWheel.steerAngle}");
+        Debug.Log($"Angle: {angleToParkingSpot:F2}, Distance: {distanceToParkingSpot:F2}, Steering: {fuzzySteering:F2}, Speed: {fuzzySpeed:F2}");
 
-        // Apply the controls to the car
-        ApplyCarControls(-50f, steeringAngle);
-
+        // Apply the controls to the car.
+        ApplyCarControls(fuzzySpeed, fuzzySteering);
     }
 
-
+    /// <summary>
+    /// Computes the angle between the car's forward direction and the direction toward the parking spot.
+    /// </summary>
     private float GetAngleToParkingSpot()
     {
+        Vector3 carDirection = transform.forward;
+        Vector3 toParkingSpot = (GameObject.Find("center").transform.position - transform.position).normalized;
 
-        // Perform a sphere cast
+        float angle = Vector3.SignedAngle(carDirection, toParkingSpot, Vector3.up);
 
-
-           
-            Vector3 carDirection = transform.forward;
-
-            // Calculate the angle between the car's direction and the parking spot
-            Vector3 toParkingSpot = (GameObject.Find("center").transform.position - transform.position).normalized;
-            float angle = Vector3.SignedAngle(transform.forward, toParkingSpot, Vector3.up);
-        return angle; // Return the angle to the parking spot
+        // Clamp to avoid unexpected values
+        return Mathf.Clamp(angle, -180f, 180f);
     }
 
 
+    /// <summary>
+    /// Computes the distance from the car's current position to the parking spot's center.
+    /// </summary>
+    private float MeasureDistanceToParkingSpot()
+    {
+        if (parkingSpot == null || parkingSpot.parkingSpotCenter == null)
+        {
+            Debug.LogError("ParkingSpot or its parkingSpotCenter is not assigned!");
+            return 0f;
+        }
+
+        float distance = Vector3.Distance(transform.position, parkingSpot.parkingSpotCenter.position);
+        return distance;
+    }
+
+    /// <summary>
+    /// Applies the fuzzy outputs to the car's motor torque and steering.
+    /// </summary>
     private void ApplyCarControls(float speed, float steering)
     {
-        // Apply motor torque and steering angle based on fuzzy logic output
+        float appliedTorque = speed * motorTorqueMultiplier;
+        float appliedSteering = Mathf.Clamp(steering, -maxSteeringAngle, maxSteeringAngle);
 
-        rearLeftWheel.motorTorque = -200;
-        rearRightWheel.motorTorque = -200;
+        // Apply motor torque to rear wheels.
+        rearLeftWheel.motorTorque = appliedTorque;
+        rearRightWheel.motorTorque = appliedTorque;
 
-        frontLeftWheel.steerAngle = steering;
-        frontRightWheel.steerAngle = steering;
+        // Apply steering angle to front wheels.
+        frontLeftWheel.steerAngle = appliedSteering;
+        frontRightWheel.steerAngle = appliedSteering;
     }
-
 }
