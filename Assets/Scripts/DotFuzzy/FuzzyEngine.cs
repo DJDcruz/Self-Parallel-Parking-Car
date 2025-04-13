@@ -403,9 +403,10 @@ namespace DotFuzzy
                 denominator += area;
             }
             Debug.Log($"Defuzzify {outputVar.Name}: numerator={numerator}, denominator={denominator}");
-            
 
-            return (denominator != 0) ? numerator / denominator : 0;
+            if (denominator == 0)
+                return 0;
+            return numerator / denominator;
         }
 
         /// <summary>
