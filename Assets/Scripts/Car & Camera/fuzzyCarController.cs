@@ -59,6 +59,9 @@ public class FuzzyCarController : MonoBehaviour
         // Set the fuzzy logic inputs.
         fuzzyEngineController.fuzzyEngine.SetInput("LateralOffset", lateralOffset);
         fuzzyEngineController.fuzzyEngine.SetInput("VerticalOffset", verticalOffset);
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 
         // Evaluate the fuzzy logic system
@@ -69,6 +72,7 @@ public class FuzzyCarController : MonoBehaviour
         
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
         Debug.Log($"Angle: {angleToParkingSpot}, Torque: {rearLeftWheel.motorTorque}, Steer Angle: {frontLeftWheel.steerAngle}");
 
         // Apply the controls to the car
@@ -76,9 +80,13 @@ public class FuzzyCarController : MonoBehaviour
 =======
         Debug.Log($"Lateral Offset: {lateralOffset:F2}, Vertical Offset: {verticalOffset:F2}, Steering: {fuzzySteering:F2}, Speed: {fuzzySpeed:F2}");
 >>>>>>> Stashed changes
+=======
+        Debug.Log($"Lateral Offset: {lateralOffset:F2}, Vertical Offset: {verticalOffset:F2}, Steering: {fuzzySteering:F2}, Speed: {fuzzySpeed:F2}");
+>>>>>>> Stashed changes
 
     }
 
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream
 
     private float GetAngleToParkingSpot()
@@ -98,6 +106,8 @@ public class FuzzyCarController : MonoBehaviour
 
 
 =======
+=======
+>>>>>>> Stashed changes
     /// <summary>
     /// Applies the fuzzy outputs to the car's motor torque and steering.
     /// </summary>

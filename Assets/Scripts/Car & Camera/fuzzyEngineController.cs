@@ -15,6 +15,7 @@ public class FuzzyEngineController : MonoBehaviour
         }
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
         LinguisticVariable angleToParkingSpot = new LinguisticVariable("AngleToParkingSpot");
         angleToParkingSpot.MembershipFunctionCollection.Add(new MembershipFunction("Straight", -5, 0, 0, 5));
         angleToParkingSpot.MembershipFunctionCollection.Add(new MembershipFunction("SlightLeft", -20, -15, -10, -5));
@@ -50,6 +51,8 @@ public class FuzzyEngineController : MonoBehaviour
         fuzzyEngine.FuzzyRuleCollection.Add(rule4);
         fuzzyEngine.FuzzyRuleCollection.Add(rule5);
 =======
+=======
+>>>>>>> Stashed changes
         // -----------------------------
         // Input: LateralOffset
         // -----------------------------
@@ -117,6 +120,9 @@ public class FuzzyEngineController : MonoBehaviour
         fuzzyEngine.FuzzyRuleCollection.Add(new FuzzyRule("IF LateralOffset IS Center AND VerticalOffset IS Near THEN Speed IS ForwardSlow AND Steering IS Straight"));
         fuzzyEngine.FuzzyRuleCollection.Add(new FuzzyRule("IF LateralOffset IS Center AND VerticalOffset IS Forward THEN Speed IS ReverseSlow AND Steering IS SharpRight"));
         fuzzyEngine.FuzzyRuleCollection.Add(new FuzzyRule("IF LateralOffset IS Center AND VerticalOffset IS Behind THEN Speed IS ReverseSlow AND Steering IS SharpRight"));
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 
     }
